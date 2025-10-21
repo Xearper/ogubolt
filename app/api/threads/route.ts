@@ -14,12 +14,44 @@ export async function POST(request: Request) {
       )
     }
 
-    const body = await request.json()
+    let body
+    try {
+      body = await request.json()
+    } catch (parseError) {
+      console.error("Error parsing JSON:", parseError)
+      return NextResponse.json(
+        { error: "Invalid JSON in request body" },
+        { status: 400 }
+      )
+    }
     const { title, content, categoryId, tags } = body
 
-    if (!title || !content || !categoryId) {
+    // Validate required fields
+    if (!title || typeof title !== 'string' || !title.trim()) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Title is required and must be a non-empty string" },
+        { status: 400 }
+      )
+    }
+
+    if (!content || typeof content !== 'string' || !content.trim()) {
+      return NextResponse.json(
+        { error: "Content is required and must be a non-empty string" },
+        { status: 400 }
+      )
+    }
+
+    if (!categoryId || typeof categoryId !== 'string') {
+      return NextResponse.json(
+        { error: "Category ID is required and must be a valid string" },
+        { status: 400 }
+      )
+    }
+
+    // Validate title length
+    if (title.trim().length > 200) {
+      return NextResponse.json(
+        { error: "Title must not exceed 200 characters" },
         { status: 400 }
       )
     }
@@ -28,8 +60,8 @@ export async function POST(request: Request) {
     const { data: thread, error: threadError } = await supabase
       .from("threads")
       .insert({
-        title,
-        content,
+        title: title.trim(),
+        content: content.trim(),
         author_id: user.id,
         category_id: categoryId,
       })
@@ -37,49 +69,100 @@ export async function POST(request: Request) {
       .single()
 
     if (threadError) {
-      console.error("Error creating thread:", threadError)
+      console.error("Error creating thread:", {
+        error: threadError,
+        message: threadError.message,
+        details: threadError.details,
+        hint: threadError.hint,
+        code: threadError.code,
+      })
+
+      // Return specific error message based on error code
+      if (threadError.code === '23503') {
+        return NextResponse.json(
+          { error: "Invalid category ID. The selected category does not exist." },
+          { status: 400 }
+        )
+      }
+
       return NextResponse.json(
-        { error: "Failed to create thread" },
+        { error: "Failed to create thread", details: threadError.message },
         { status: 500 }
       )
     }
 
     // Create tags if provided
-    if (tags && tags.length > 0) {
+    if (tags && Array.isArray(tags) && tags.length > 0) {
       for (const tagName of tags) {
-        // Check if tag exists, if not create it
-        const { data: existingTag } = await supabase
-          .from("tags")
-          .select("id")
-          .eq("name", tagName)
-          .single()
-
-        let tagId: string
-
-        if (!existingTag) {
-          const { data: newTag, error: tagError } = await supabase
-            .from("tags")
-            .insert({ name: tagName })
-            .select("id")
-            .single()
-
-          if (tagError || !newTag) {
-            console.error("Error creating tag:", tagError)
+        try {
+          // Validate tag name
+          if (!tagName || typeof tagName !== 'string' || !tagName.trim()) {
+            console.warn("Skipping invalid tag:", tagName)
             continue
           }
 
-          tagId = newTag.id
-        } else {
-          tagId = existingTag.id
-        }
+          const normalizedTagName = tagName.trim().toLowerCase()
 
-        // Link tag to thread
-        await supabase
-          .from("thread_tags")
-          .insert({
-            thread_id: thread.id,
-            tag_id: tagId,
-          })
+          // Check if tag exists, if not create it
+          const { data: existingTag, error: fetchError } = await supabase
+            .from("tags")
+            .select("id")
+            .eq("name", normalizedTagName)
+            .maybeSingle()
+
+          if (fetchError) {
+            console.error("Error fetching tag:", fetchError)
+            continue
+          }
+
+          let tagId: string
+
+          if (!existingTag) {
+            const { data: newTag, error: tagError } = await supabase
+              .from("tags")
+              .insert({ name: normalizedTagName })
+              .select("id")
+              .single()
+
+            if (tagError) {
+              console.error("Error creating tag:", tagError)
+              // If tag already exists due to race condition, try fetching it again
+              const { data: retryTag } = await supabase
+                .from("tags")
+                .select("id")
+                .eq("name", normalizedTagName)
+                .maybeSingle()
+
+              if (retryTag) {
+                tagId = retryTag.id
+              } else {
+                continue
+              }
+            } else if (newTag) {
+              tagId = newTag.id
+            } else {
+              continue
+            }
+          } else {
+            tagId = existingTag.id
+          }
+
+          // Link tag to thread
+          const { error: linkError } = await supabase
+            .from("thread_tags")
+            .insert({
+              thread_id: thread.id,
+              tag_id: tagId,
+            })
+
+          if (linkError) {
+            console.error("Error linking tag to thread:", linkError)
+            // Don't fail the entire request if tag linking fails
+          }
+        } catch (tagError) {
+          console.error("Unexpected error processing tag:", tagName, tagError)
+          // Continue processing other tags
+        }
       }
     }
 

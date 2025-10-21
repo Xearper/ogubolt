@@ -16,9 +16,15 @@ interface RichTextEditorProps {
 export function RichTextEditor({ content, onChange, placeholder }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        // Exclude Link from StarterKit to add our own configuration
+        link: false,
+      }),
       Link.configure({
         openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-primary underline underline-offset-4',
+        },
       }),
       Placeholder.configure({
         placeholder: placeholder || "Start writing...",
