@@ -118,8 +118,8 @@ export function ThreadList({ threads }: ThreadListProps) {
                       variant="secondary"
                       className="text-xs px-2 py-0.5"
                       style={{
-                        backgroundColor: thread.categories.color + "20",
-                        borderColor: thread.categories.color,
+                        backgroundColor: (thread.categories.color || "transparent") + "20",
+                        borderColor: thread.categories.color || "transparent",
                       }}
                     >
                       {thread.categories.name}
