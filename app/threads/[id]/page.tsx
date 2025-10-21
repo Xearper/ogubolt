@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Header } from "@/components/layout/header"
-import { ThreadDetail } from "@/components/threads/thread-detail"
-import { CommentSection } from "@/components/comments/comment-section"
+import { ThreadPost } from "@/components/xenforo/thread-post"
+import { XenforoCommentSection } from "@/components/xenforo/comment-section"
 
 export default async function ThreadPage({ params }: { params: { id: string } }) {
   const supabase = await createClient()
@@ -23,9 +23,9 @@ export default async function ThreadPage({ params }: { params: { id: string } })
     .from("threads")
     .select(`
       *,
-      profiles!threads_author_id_fkey (id, username, avatar_url, reputation),
+      profiles!threads_author_id_fkey (*),
       categories (id, name, slug, color),
-      votes:votes!votes_thread_id_fkey (vote_type, user_id),
+      reactions (*),
       thread_tags (
         tags (id, name)
       )
@@ -47,8 +47,13 @@ export default async function ThreadPage({ params }: { params: { id: string } })
     .from("comments")
     .select(`
       *,
-      profiles!comments_author_id_fkey (id, username, avatar_url, reputation),
-      votes:comment_votes!comment_votes_comment_id_fkey (vote_type, user_id)
+      profiles!comments_author_id_fkey (*),
+      reactions (*),
+      quoted_comment:quoted_comment_id (
+        id,
+        content,
+        profiles!comments_author_id_fkey (username)
+      )
     `)
     .eq("thread_id", params.id)
     .is("parent_id", null)
@@ -64,10 +69,10 @@ export default async function ThreadPage({ params }: { params: { id: string } })
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <Header user={profile} onSignOut={handleSignOut} />
 
-      <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:py-8 max-w-5xl">
-        <ThreadDetail thread={thread} currentUser={profile} />
-        <div className="mt-8">
-          <CommentSection
+      <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:py-8 max-w-6xl">
+        <ThreadPost thread={thread} currentUser={profile} />
+        <div className="mt-6">
+          <XenforoCommentSection
             threadId={params.id}
             comments={comments || []}
             currentUser={profile}
