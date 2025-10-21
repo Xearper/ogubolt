@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { ArrowBigUp, ArrowBigDown, Reply, Trash2 } from "lucide-react"
 import { motion } from "framer-motion"
@@ -41,13 +41,7 @@ export function Comment({ comment, threadId, currentUser, isLocked, depth = 0 }:
   const maxDepth = 3
   const isMaxDepth = depth >= maxDepth
 
-  useEffect(() => {
-    if (showReplies && replies.length === 0) {
-      loadReplies()
-    }
-  }, [showReplies])
-
-  const loadReplies = async () => {
+  const loadReplies = useCallback(async () => {
     setLoadingReplies(true)
     try {
       const supabase = createClient()
@@ -70,7 +64,13 @@ export function Comment({ comment, threadId, currentUser, isLocked, depth = 0 }:
     } finally {
       setLoadingReplies(false)
     }
-  }
+  }, [comment.id])
+
+  useEffect(() => {
+    if (showReplies && replies.length === 0) {
+      loadReplies()
+    }
+  }, [showReplies, replies.length, loadReplies])
 
   const handleVote = async (voteType: "upvote" | "downvote") => {
     if (!currentUser) {
