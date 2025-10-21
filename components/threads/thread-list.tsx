@@ -2,11 +2,13 @@
 
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
-import { MessageCircle, ArrowBigUp, ArrowBigDown, Pin, Lock } from "lucide-react"
+import { MessageCircle, ArrowBigUp, ArrowBigDown, Pin, Lock, MessageSquare } from "lucide-react"
+import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface Thread {
   id: string
@@ -35,52 +37,100 @@ interface ThreadListProps {
   currentUserId?: string
 }
 
+// Animation variants for stagger effect
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
+    },
+  },
+}
+
 export function ThreadList({ threads }: ThreadListProps) {
   if (threads.length === 0) {
     return (
-      <Card className="p-8 sm:p-12 text-center">
-        <p className="text-sm sm:text-base text-muted-foreground">
-          No threads yet. Be the first to start a discussion!
-        </p>
-      </Card>
+      <EmptyState
+        icon={MessageSquare}
+        title="No threads yet"
+        description="Be the first to start a discussion! Share your thoughts, ask questions, or start a conversation with the community."
+      />
     )
   }
 
   return (
-    <div className="space-y-2 sm:space-y-3">
+    <motion.div
+      className="space-y-2 sm:space-y-3"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {threads.map((thread) => {
         const upvotes = thread.votes.filter((v) => v.vote_type === "upvote").length
         const downvotes = thread.votes.filter((v) => v.vote_type === "downvote").length
         const score = upvotes - downvotes
 
         return (
-          <Card
-            key={thread.id}
-            className="p-3 sm:p-4 hover:shadow-lg transition-all duration-200 border-l-4"
-            style={{
-              borderLeftColor: thread.is_pinned
-                ? "#8b5cf6"
-                : thread.categories?.color || "transparent",
-            }}
-          >
+          <motion.div key={thread.id} variants={itemVariants}>
+            <Card
+              className="p-3 sm:p-4 hover:shadow-lg transition-all duration-200 border-l-4"
+              style={{
+                borderLeftColor: thread.is_pinned
+                  ? "#8b5cf6"
+                  : thread.categories?.color || "transparent",
+              }}
+            >
             <div className="flex gap-2 sm:gap-4">
-              {/* Vote Section - Responsive */}
+              {/* Vote Section - Responsive with Enhanced Animations */}
               <div className="flex flex-col items-center gap-0.5 sm:gap-1 min-w-[40px] sm:min-w-[60px]">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 sm:h-8 sm:w-8 p-0 hover:bg-accent"
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
-                  <ArrowBigUp className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground hover:text-violet-600 transition-colors" />
-                </Button>
-                <span className="font-bold text-sm sm:text-lg">{score}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 sm:h-8 sm:w-8 p-0 hover:bg-accent"
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 sm:h-8 sm:w-8 p-0 hover:bg-violet-50 dark:hover:bg-violet-950/30 group"
+                  >
+                    <ArrowBigUp className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors duration-200" />
+                  </Button>
+                </motion.div>
+                <motion.span
+                  className="font-bold text-sm sm:text-lg"
+                  initial={{ scale: 1 }}
+                  key={score}
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 0.3 }}
                 >
-                  <ArrowBigDown className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground hover:text-orange-600 transition-colors" />
-                </Button>
+                  {score}
+                </motion.span>
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 sm:h-8 sm:w-8 p-0 hover:bg-orange-50 dark:hover:bg-orange-950/30 group"
+                  >
+                    <ArrowBigDown className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-200" />
+                  </Button>
+                </motion.div>
               </div>
 
               {/* Content Section */}
@@ -118,8 +168,8 @@ export function ThreadList({ threads }: ThreadListProps) {
                       variant="secondary"
                       className="text-xs px-2 py-0.5"
                       style={{
-                        backgroundColor: thread.categories.color + "20",
-                        borderColor: thread.categories.color,
+                        backgroundColor: thread.categories.color ? thread.categories.color + "20" : undefined,
+                        borderColor: thread.categories.color || undefined,
                       }}
                     >
                       {thread.categories.name}
@@ -158,9 +208,10 @@ export function ThreadList({ threads }: ThreadListProps) {
                 </div>
               </div>
             </div>
-          </Card>
+            </Card>
+          </motion.div>
         )
       })}
-    </div>
+    </motion.div>
   )
 }
