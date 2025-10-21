@@ -3,21 +3,27 @@ import { Header } from "@/components/layout/header"
 import { ThreadList } from "@/components/threads/thread-list"
 import { CategorySidebar } from "@/components/layout/category-sidebar"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
 import Link from "next/link"
-import { Plus } from "lucide-react"
+import { Plus, ArrowLeft } from "lucide-react"
+import { notFound } from "next/navigation"
 
 export const dynamic = "force-dynamic"
 
 const THREADS_PER_PAGE = 20
 
-interface HomeProps {
+interface CategoryPageProps {
+  params: Promise<{
+    slug: string
+  }>
   searchParams: Promise<{ page?: string }>
 }
 
-export default async function Home({ searchParams }: HomeProps) {
-  const params = await searchParams
-  const currentPage = Number(params.page) || 1
+export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
+  const { slug } = await params
+  const searchParamsData = await searchParams
+  const currentPage = Number(searchParamsData.page) || 1
   const offset = (currentPage - 1) * THREADS_PER_PAGE
 
   const supabase = await createClient()
@@ -34,13 +40,26 @@ export default async function Home({ searchParams }: HomeProps) {
     profile = data
   }
 
+  // Fetch the category
+  const { data: category } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("slug", slug)
+    .single()
+
+  if (!category) {
+    notFound()
+  }
+
   // Get total count for pagination
   const { count: totalThreads } = await supabase
     .from("threads")
     .select("*", { count: "exact", head: true })
+    .eq("category_id", category.id)
 
   const totalPages = Math.ceil((totalThreads || 0) / THREADS_PER_PAGE)
 
+  // Fetch threads for this category
   const { data: threads } = await supabase
     .from("threads")
     .select(`
@@ -50,10 +69,12 @@ export default async function Home({ searchParams }: HomeProps) {
       votes:votes!votes_thread_id_fkey (vote_type),
       comments (id)
     `)
+    .eq("category_id", category.id)
     .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false })
     .range(offset, offset + THREADS_PER_PAGE - 1)
 
+  // Fetch all categories for sidebar
   const { data: categories } = await supabase
     .from("categories")
     .select("*")
@@ -71,15 +92,47 @@ export default async function Home({ searchParams }: HomeProps) {
 
       <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
-          {/* Main Content - Mobile First */}
+          {/* Main Content */}
           <div className="lg:col-span-3 space-y-4 sm:space-y-6">
-            {/* Header Section - Mobile Optimized */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-              <div className="min-w-0">
-                <h1 className="text-2xl sm:text-3xl font-bold truncate">Latest Threads</h1>
-                <p className="text-sm sm:text-base text-muted-foreground mt-1 hidden sm:block">
-                  Discover the latest discussions and opportunities
-                </p>
+            {/* Back Button */}
+            <div>
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="gap-2 mb-2"
+              >
+                <Link href="/categories">
+                  <ArrowLeft className="h-4 w-4" />
+                  All Categories
+                </Link>
+              </Button>
+            </div>
+
+            {/* Category Header */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-2xl sm:text-3xl font-bold truncate">
+                    {category.name}
+                  </h1>
+                  {category.color && (
+                    <div
+                      className="w-4 h-4 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: category.color }}
+                    />
+                  )}
+                </div>
+                {category.description && (
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    {category.description}
+                  </p>
+                )}
+                <div className="mt-3">
+                  <Badge variant="secondary">
+                    {totalThreads || 0} {totalThreads === 1 ? 'thread' : 'threads'}
+                  </Badge>
+                </div>
               </div>
               {user && (
                 <Button
@@ -89,7 +142,7 @@ export default async function Home({ searchParams }: HomeProps) {
                 >
                   <Link href="/threads/new">
                     <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-                    <span className="sm:inline">New Thread</span>
+                    <span>New Thread</span>
                   </Link>
                 </Button>
               )}
@@ -102,9 +155,9 @@ export default async function Home({ searchParams }: HomeProps) {
             <Pagination currentPage={currentPage} totalPages={totalPages} />
           </div>
 
-          {/* Sidebar - Hidden on mobile, visible on desktop */}
+          {/* Sidebar */}
           <div className="hidden lg:block space-y-6">
-            <CategorySidebar categories={categories || []} />
+            <CategorySidebar categories={categories || []} currentSlug={slug} />
           </div>
         </div>
       </main>
