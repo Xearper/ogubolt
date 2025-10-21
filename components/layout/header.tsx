@@ -104,7 +104,7 @@ export function Header({ user, onSignOut }: HeaderProps) {
                   {/* User Avatar */}
                   <Link href="/profile">
                     <Avatar className="h-8 w-8 sm:h-9 sm:w-9 cursor-pointer ring-2 ring-transparent hover:ring-violet-500 transition-all">
-                      <AvatarImage src={user.avatar_url} alt={user.username} />
+                      <AvatarImage src={user.avatar_url || undefined} alt={user.username} />
                       <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-sm">
                         {user.username?.charAt(0).toUpperCase()}
                       </AvatarFallback>
