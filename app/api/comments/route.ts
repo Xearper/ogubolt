@@ -47,6 +47,52 @@ export async function POST(request: Request) {
       )
     }
 
+    // Create notification for the recipient
+    try {
+      let recipientId: string | null = null
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", user.id)
+        .single()
+
+      if (parentId) {
+        // Reply to a comment - notify the parent comment author
+        const { data: parentComment } = await supabase
+          .from("comments")
+          .select("author_id")
+          .eq("id", parentId)
+          .single()
+
+        recipientId = parentComment?.author_id || null
+      } else {
+        // Reply to a thread - notify the thread author
+        const { data: thread } = await supabase
+          .from("threads")
+          .select("author_id")
+          .eq("id", threadId)
+          .single()
+
+        recipientId = thread?.author_id || null
+      }
+
+      // Only create notification if recipient is not the comment author
+      if (recipientId && recipientId !== user.id) {
+        await supabase
+          .from("notifications")
+          .insert({
+            user_id: recipientId,
+            type: "reply",
+            content: `${profile?.username || "Someone"} replied to your ${parentId ? "comment" : "thread"}`,
+            thread_id: threadId,
+            comment_id: comment.id,
+          })
+      }
+    } catch (notifError) {
+      // Don't fail the comment creation if notification fails
+      console.error("Error creating notification:", notifError)
+    }
+
     return NextResponse.json({ comment }, { status: 201 })
   } catch (error) {
     console.error("Error in POST /api/comments:", error)

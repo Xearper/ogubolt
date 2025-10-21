@@ -51,6 +51,36 @@ export async function POST(request: Request) {
           }, {
             onConflict: "thread_id,user_id",
           })
+
+        // Create notification for upvotes only
+        if (voteType === "upvote") {
+          try {
+            const { data: thread } = await supabase
+              .from("threads")
+              .select("author_id")
+              .eq("id", threadId)
+              .single()
+
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("username")
+              .eq("id", user.id)
+              .single()
+
+            if (thread?.author_id && thread.author_id !== user.id) {
+              await supabase
+                .from("notifications")
+                .insert({
+                  user_id: thread.author_id,
+                  type: "vote",
+                  content: `${profile?.username || "Someone"} upvoted your thread`,
+                  thread_id: threadId,
+                })
+            }
+          } catch (notifError) {
+            console.error("Error creating vote notification:", notifError)
+          }
+        }
       }
     } else if (commentId) {
       // Comment vote
@@ -72,6 +102,37 @@ export async function POST(request: Request) {
           }, {
             onConflict: "comment_id,user_id",
           })
+
+        // Create notification for upvotes only
+        if (voteType === "upvote") {
+          try {
+            const { data: comment } = await supabase
+              .from("comments")
+              .select("author_id, thread_id")
+              .eq("id", commentId)
+              .single()
+
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("username")
+              .eq("id", user.id)
+              .single()
+
+            if (comment?.author_id && comment.author_id !== user.id) {
+              await supabase
+                .from("notifications")
+                .insert({
+                  user_id: comment.author_id,
+                  type: "vote",
+                  content: `${profile?.username || "Someone"} upvoted your comment`,
+                  thread_id: comment.thread_id,
+                  comment_id: commentId,
+                })
+            }
+          } catch (notifError) {
+            console.error("Error creating vote notification:", notifError)
+          }
+        }
       }
     }
 
