@@ -2,10 +2,11 @@
 
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
-import { MessageCircle, ArrowBigUp, Pin, Lock } from "lucide-react"
+import { MessageCircle, ArrowBigUp, ArrowBigDown, Pin, Lock } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 
 interface Thread {
   id: string
@@ -37,8 +38,8 @@ interface ThreadListProps {
 export function ThreadList({ threads, currentUserId }: ThreadListProps) {
   if (threads.length === 0) {
     return (
-      <Card className="p-12 text-center">
-        <p className="text-muted-foreground">
+      <Card className="p-8 sm:p-12 text-center">
+        <p className="text-sm sm:text-base text-muted-foreground">
           No threads yet. Be the first to start a discussion!
         </p>
       </Card>
@@ -46,7 +47,7 @@ export function ThreadList({ threads, currentUserId }: ThreadListProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2 sm:space-y-3">
       {threads.map((thread) => {
         const upvotes = thread.votes.filter((v) => v.vote_type === "upvote").length
         const downvotes = thread.votes.filter((v) => v.vote_type === "downvote").length
@@ -55,48 +56,67 @@ export function ThreadList({ threads, currentUserId }: ThreadListProps) {
         return (
           <Card
             key={thread.id}
-            className="p-4 hover:shadow-lg transition-all duration-200 border-l-4"
+            className="p-3 sm:p-4 hover:shadow-lg transition-all duration-200 border-l-4"
             style={{
               borderLeftColor: thread.is_pinned
                 ? "#8b5cf6"
                 : thread.categories?.color || "transparent",
             }}
           >
-            <div className="flex gap-4">
-              <div className="flex flex-col items-center gap-1 min-w-[60px]">
-                <div className="flex flex-col items-center">
-                  <ArrowBigUp className="h-6 w-6 text-muted-foreground" />
-                  <span className="font-bold text-lg">{score}</span>
-                </div>
+            <div className="flex gap-2 sm:gap-4">
+              {/* Vote Section - Responsive */}
+              <div className="flex flex-col items-center gap-0.5 sm:gap-1 min-w-[40px] sm:min-w-[60px]">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 sm:h-8 sm:w-8 p-0 hover:bg-accent"
+                >
+                  <ArrowBigUp className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground hover:text-violet-600 transition-colors" />
+                </Button>
+                <span className="font-bold text-sm sm:text-lg">{score}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 sm:h-8 sm:w-8 p-0 hover:bg-accent"
+                >
+                  <ArrowBigDown className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground hover:text-orange-600 transition-colors" />
+                </Button>
               </div>
 
-              <div className="flex-1 space-y-2">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <Link
-                      href={`/threads/${thread.id}`}
-                      className="group inline-flex items-center gap-2"
-                    >
+              {/* Content Section */}
+              <div className="flex-1 min-w-0 space-y-2">
+                {/* Title with Icons */}
+                <div className="flex items-start gap-2">
+                  <Link
+                    href={`/threads/${thread.id}`}
+                    className="group flex-1 min-w-0"
+                  >
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                       {thread.is_pinned && (
-                        <Pin className="h-4 w-4 text-violet-500" />
+                        <Pin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-violet-500 flex-shrink-0" />
                       )}
                       {thread.is_locked && (
-                        <Lock className="h-4 w-4 text-orange-500" />
+                        <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-500 flex-shrink-0" />
                       )}
-                      <h3 className="text-lg font-semibold group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+                      <h3 className="text-base sm:text-lg font-semibold group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors line-clamp-2">
                         {thread.title}
                       </h3>
-                    </Link>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                      {thread.content.replace(/<[^>]*>/g, "").substring(0, 150)}...
-                    </p>
-                  </div>
+                    </div>
+                  </Link>
                 </div>
 
-                <div className="flex items-center gap-3 flex-wrap">
+                {/* Preview Text - Hidden on small mobile */}
+                <p className="hidden sm:block text-sm text-muted-foreground line-clamp-2">
+                  {thread.content.replace(/<[^>]*>/g, "").substring(0, 150)}...
+                </p>
+
+                {/* Meta Information - Mobile Optimized */}
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap text-xs sm:text-sm">
+                  {/* Category Badge */}
                   {thread.categories && (
                     <Badge
                       variant="secondary"
+                      className="text-xs px-2 py-0.5"
                       style={{
                         backgroundColor: thread.categories.color + "20",
                         borderColor: thread.categories.color,
@@ -106,28 +126,33 @@ export function ThreadList({ threads, currentUserId }: ThreadListProps) {
                     </Badge>
                   )}
 
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Avatar className="h-5 w-5">
+                  {/* Author */}
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Avatar className="h-4 w-4 sm:h-5 sm:w-5">
                       <AvatarImage src={thread.profiles.avatar_url || ""} />
-                      <AvatarFallback className="text-xs">
+                      <AvatarFallback className="text-[10px] sm:text-xs">
                         {thread.profiles.username.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <Link
                       href={`/profile/${thread.profiles.username}`}
-                      className="hover:underline"
+                      className="hover:underline truncate max-w-[100px] sm:max-w-none"
                     >
                       {thread.profiles.username}
                     </Link>
-                    <span className="text-xs">({thread.profiles.reputation} rep)</span>
+                    <span className="hidden sm:inline text-xs">
+                      ({thread.profiles.reputation} rep)
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <MessageCircle className="h-4 w-4" />
+                  {/* Comment Count */}
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     <span>{thread.comments.length}</span>
                   </div>
 
-                  <span className="text-sm text-muted-foreground">
+                  {/* Time - Abbreviated on mobile */}
+                  <span className="text-muted-foreground hidden xs:inline">
                     {formatDistanceToNow(new Date(thread.created_at), { addSuffix: true })}
                   </span>
                 </div>

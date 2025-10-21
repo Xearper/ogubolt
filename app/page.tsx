@@ -51,34 +51,57 @@ export default async function Home() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <Header user={profile} onSignOut={handleSignOut} />
 
-      <main className="container py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-3 space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold">Latest Threads</h1>
-                <p className="text-muted-foreground mt-1">
+      <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+          {/* Main Content - Mobile First */}
+          <div className="lg:col-span-3 space-y-4 sm:space-y-6">
+            {/* Header Section - Mobile Optimized */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+              <div className="min-w-0">
+                <h1 className="text-2xl sm:text-3xl font-bold truncate">Latest Threads</h1>
+                <p className="text-sm sm:text-base text-muted-foreground mt-1 hidden sm:block">
                   Discover the latest discussions and opportunities
                 </p>
               </div>
               {user && (
-                <Button asChild size="lg" className="gap-2">
+                <Button
+                  asChild
+                  size="default"
+                  className="gap-2 w-full sm:w-auto flex-shrink-0"
+                >
                   <Link href="/threads/new">
-                    <Plus className="h-5 w-5" />
-                    New Thread
+                    <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="sm:inline">New Thread</span>
                   </Link>
                 </Button>
               )}
             </div>
 
+            {/* Thread List */}
             <ThreadList threads={threads || []} currentUserId={user?.id} />
           </div>
 
-          <div className="space-y-6">
+          {/* Sidebar - Hidden on mobile, visible on desktop */}
+          <div className="hidden lg:block space-y-6">
             <CategorySidebar categories={categories || []} />
           </div>
         </div>
       </main>
+
+      {/* Floating Action Button - Mobile Only */}
+      {user && (
+        <div className="fixed bottom-6 right-6 lg:hidden">
+          <Button
+            asChild
+            size="lg"
+            className="h-14 w-14 rounded-full shadow-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600"
+          >
+            <Link href="/threads/new">
+              <Plus className="h-6 w-6" />
+            </Link>
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
