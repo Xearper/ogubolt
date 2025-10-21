@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { formatDistanceToNow } from "date-fns"
+import Link from "next/link"
 
 interface UserProfileProps {
   profile: any
@@ -80,8 +81,10 @@ export function UserProfile({ profile, isOwnProfile }: UserProfileProps) {
           </div>
 
           {isOwnProfile && (
-            <Button variant="outline" className="w-full">
-              Edit Profile
+            <Button asChild variant="outline" className="w-full">
+              <Link href={`/profile/${profile.username}/edit`}>
+                Edit Profile
+              </Link>
             </Button>
           )}
         </CardContent>

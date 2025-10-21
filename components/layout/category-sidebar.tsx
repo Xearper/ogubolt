@@ -12,9 +12,10 @@ interface Category {
 
 interface CategorySidebarProps {
   categories: Category[]
+  currentSlug?: string
 }
 
-export function CategorySidebar({ categories }: CategorySidebarProps) {
+export function CategorySidebar({ categories, currentSlug }: CategorySidebarProps) {
   return (
     <div className="space-y-6">
       <Card>
@@ -22,21 +23,30 @@ export function CategorySidebar({ categories }: CategorySidebarProps) {
           <CardTitle className="text-lg">Categories</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {categories.map((category) => (
-            <Link
-              key={category.id}
-              href={`/categories/${category.slug}`}
-              className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent transition-colors group"
-            >
-              <div
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: category.color || "#6366f1" }}
-              />
-              <span className="text-sm font-medium group-hover:text-foreground">
-                {category.name}
-              </span>
-            </Link>
-          ))}
+          {categories.map((category) => {
+            const isActive = currentSlug === category.slug
+            return (
+              <Link
+                key={category.id}
+                href={`/categories/${category.slug}`}
+                className={`flex items-center gap-2 p-2 rounded-lg transition-colors group ${
+                  isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-accent'
+                }`}
+              >
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: isActive ? '#ffffff' : (category.color || "#6366f1") }}
+                />
+                <span className={`text-sm font-medium ${
+                  isActive ? 'text-primary-foreground' : 'group-hover:text-foreground'
+                }`}>
+                  {category.name}
+                </span>
+              </Link>
+            )
+          })}
         </CardContent>
       </Card>
 

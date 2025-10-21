@@ -3,8 +3,9 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Search, Bell, LogOut, Zap, Menu, X, Home, Folder, User } from "lucide-react"
+import { Search, LogOut, Zap, Menu, X, Home, Folder, User } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
+import { NotificationsDropdown } from "./notifications-dropdown"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -92,17 +93,12 @@ export function Header({ user, onSignOut }: HeaderProps) {
               {user ? (
                 <>
                   {/* Notifications - Hidden on mobile */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hidden md:flex rounded-full h-9 w-9 relative"
-                  >
-                    <Bell className="h-4 w-4" />
-                    <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-background" />
-                  </Button>
+                  <div className="hidden md:block">
+                    <NotificationsDropdown />
+                  </div>
 
                   {/* User Avatar */}
-                  <Link href="/profile">
+                  <Link href={`/profile/${user.username}`}>
                     <Avatar className="h-8 w-8 sm:h-9 sm:w-9 cursor-pointer ring-2 ring-transparent hover:ring-violet-500 transition-all">
                       <AvatarImage src={user.avatar_url || undefined} alt={user.username} />
                       <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-sm">
@@ -196,7 +192,7 @@ export function Header({ user, onSignOut }: HeaderProps) {
                       Account
                     </div>
                     <Link
-                      href="/profile"
+                      href={`/profile/${user.username}`}
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-3 px-3 py-3 text-sm font-medium rounded-lg text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-all"
                     >
