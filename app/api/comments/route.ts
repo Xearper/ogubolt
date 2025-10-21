@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { threadId, parentId, content } = body
+    const { threadId, parentId, quotedCommentId, content } = body
 
     if (!threadId || !content) {
       return NextResponse.json(
@@ -29,13 +29,19 @@ export async function POST(request: Request) {
       .insert({
         thread_id: threadId,
         parent_id: parentId || null,
+        quoted_comment_id: quotedCommentId || null,
         author_id: user.id,
         content,
       })
       .select(`
         *,
-        profiles!comments_author_id_fkey (id, username, avatar_url, reputation),
-        votes:comment_votes!comment_votes_comment_id_fkey (vote_type, user_id)
+        profiles!comments_author_id_fkey (*),
+        reactions (*),
+        quoted_comment:quoted_comment_id (
+          id,
+          content,
+          profiles!comments_author_id_fkey (username)
+        )
       `)
       .single()
 

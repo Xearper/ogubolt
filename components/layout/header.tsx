@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Search, LogOut, Zap, Menu, X, Home, Folder, User } from "lucide-react"
+import { Search, LogOut, Zap, Menu, X, Home, Folder, User, Trophy } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
 import { NotificationsDropdown } from "./notifications-dropdown"
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,7 @@ export function Header({ user, onSignOut }: HeaderProps) {
   const navigation = [
     { name: "Home", href: "/", icon: Home },
     { name: "Categories", href: "/categories", icon: Folder },
+    { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
     { name: "Search", href: "/search", icon: Search },
   ]
 

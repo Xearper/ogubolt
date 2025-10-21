@@ -11,12 +11,13 @@ import { useRouter } from "next/navigation"
 interface CommentFormProps {
   threadId: string
   parentId?: string
+  quotedCommentId?: string
   onCommentAdded: (comment: any) => void
   onCancel?: () => void
   currentUser: any
 }
 
-export function CommentForm({ threadId, parentId, onCommentAdded, onCancel, currentUser }: CommentFormProps) {
+export function CommentForm({ threadId, parentId, quotedCommentId, onCommentAdded, onCancel, currentUser }: CommentFormProps) {
   const router = useRouter()
   const [content, setContent] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -38,6 +39,7 @@ export function CommentForm({ threadId, parentId, onCommentAdded, onCancel, curr
         body: JSON.stringify({
           threadId,
           parentId: parentId || null,
+          quotedCommentId: quotedCommentId || null,
           content: content.trim(),
         }),
       })

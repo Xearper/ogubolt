@@ -17,6 +17,22 @@ export interface Database {
           avatar_url: string | null
           bio: string | null
           reputation: number
+          role: 'user' | 'moderator' | 'admin'
+          role_id: string | null
+          location: string | null
+          website: string | null
+          signature: string | null
+          post_count: number
+          thread_count: number
+          likes_received: number
+          likes_given: number
+          experience_points: number
+          level: number
+          daily_streak: number
+          last_login_date: string | null
+          total_login_days: number
+          follower_count: number
+          following_count: number
           created_at: string
           updated_at: string
         }
@@ -27,6 +43,22 @@ export interface Database {
           avatar_url?: string | null
           bio?: string | null
           reputation?: number
+          role?: 'user' | 'moderator' | 'admin'
+          role_id?: string | null
+          location?: string | null
+          website?: string | null
+          signature?: string | null
+          post_count?: number
+          thread_count?: number
+          likes_received?: number
+          likes_given?: number
+          experience_points?: number
+          level?: number
+          daily_streak?: number
+          last_login_date?: string | null
+          total_login_days?: number
+          follower_count?: number
+          following_count?: number
           created_at?: string
           updated_at?: string
         }
@@ -37,6 +69,22 @@ export interface Database {
           avatar_url?: string | null
           bio?: string | null
           reputation?: number
+          role?: 'user' | 'moderator' | 'admin'
+          role_id?: string | null
+          location?: string | null
+          website?: string | null
+          signature?: string | null
+          post_count?: number
+          thread_count?: number
+          likes_received?: number
+          likes_given?: number
+          experience_points?: number
+          level?: number
+          daily_streak?: number
+          last_login_date?: string | null
+          total_login_days?: number
+          follower_count?: number
+          following_count?: number
           created_at?: string
           updated_at?: string
         }
@@ -115,6 +163,7 @@ export interface Database {
           thread_id: string
           author_id: string
           parent_id: string | null
+          quoted_comment_id: string | null
           created_at: string
           updated_at: string
         }
@@ -124,6 +173,7 @@ export interface Database {
           thread_id: string
           author_id: string
           parent_id?: string | null
+          quoted_comment_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -133,6 +183,7 @@ export interface Database {
           thread_id?: string
           author_id?: string
           parent_id?: string | null
+          quoted_comment_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -229,6 +280,211 @@ export interface Database {
           id?: string
           name?: string
           slug?: string
+          created_at?: string
+        }
+      }
+      reactions: {
+        Row: {
+          id: string
+          user_id: string
+          thread_id: string | null
+          comment_id: string | null
+          reaction_type: 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          thread_id?: string | null
+          comment_id?: string | null
+          reaction_type: 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry'
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          thread_id?: string | null
+          comment_id?: string | null
+          reaction_type?: 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry'
+          created_at?: string
+        }
+      }
+      thread_bookmarks: {
+        Row: {
+          id: string
+          user_id: string
+          thread_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          thread_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          thread_id?: string
+          created_at?: string
+        }
+      }
+      thread_watchers: {
+        Row: {
+          id: string
+          user_id: string
+          thread_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          thread_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          thread_id?: string
+          created_at?: string
+        }
+      }
+      edit_history: {
+        Row: {
+          id: string
+          thread_id: string | null
+          comment_id: string | null
+          editor_id: string
+          old_content: string
+          edit_reason: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          thread_id?: string | null
+          comment_id?: string | null
+          editor_id: string
+          old_content: string
+          edit_reason?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          thread_id?: string | null
+          comment_id?: string | null
+          editor_id?: string
+          old_content?: string
+          edit_reason?: string | null
+          created_at?: string
+        }
+      }
+      achievements: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          description: string
+          icon: string
+          color: string
+          requirement_type: 'post_count' | 'thread_count' | 'reputation' | 'login_streak' | 'likes_received' | 'level' | 'manual'
+          requirement_value: number | null
+          badge_tier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          description: string
+          icon: string
+          color?: string
+          requirement_type: 'post_count' | 'thread_count' | 'reputation' | 'login_streak' | 'likes_received' | 'level' | 'manual'
+          requirement_value?: number | null
+          badge_tier?: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          description?: string
+          icon?: string
+          color?: string
+          requirement_type?: 'post_count' | 'thread_count' | 'reputation' | 'login_streak' | 'likes_received' | 'level' | 'manual'
+          requirement_value?: number | null
+          badge_tier?: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | null
+          created_at?: string
+        }
+      }
+      user_achievements: {
+        Row: {
+          id: string
+          user_id: string
+          achievement_id: string
+          earned_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          achievement_id: string
+          earned_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          achievement_id?: string
+          earned_at?: string
+        }
+      }
+      roles: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          color: string
+          text_color: string
+          priority: number
+          permissions: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          color?: string
+          text_color?: string
+          priority?: number
+          permissions?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          color?: string
+          text_color?: string
+          priority?: number
+          permissions?: Json
+          created_at?: string
+        }
+      }
+      followers: {
+        Row: {
+          id: string
+          follower_id: string
+          following_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          follower_id: string
+          following_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          follower_id?: string
+          following_id?: string
           created_at?: string
         }
       }
