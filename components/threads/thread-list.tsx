@@ -35,7 +35,7 @@ interface ThreadListProps {
   currentUserId?: string
 }
 
-export function ThreadList({ threads, currentUserId }: ThreadListProps) {
+export function ThreadList({ threads }: ThreadListProps) {
   if (threads.length === 0) {
     return (
       <Card className="p-8 sm:p-12 text-center">

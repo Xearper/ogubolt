@@ -9,7 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface HeaderProps {
-  user: any
+  user: {
+    username: string
+    avatar_url?: string | null
+  } | null
   onSignOut: () => void
 }
 
