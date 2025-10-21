@@ -14,18 +14,21 @@
  *   - Database migrations already run
  */
 
-const { createClient } = require('@supabase/supabase-js')
-require('dotenv').config({ path: '.env.local' })
+// Uncomment when implementing seed logic
+// import { createClient } from '@supabase/supabase-js'
+// import dotenv from 'dotenv'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+// dotenv.config({ path: '.env.local' })
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('❌ Missing Supabase credentials. Check your .env.local file.')
-  process.exit(1)
-}
+// const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+// const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-const supabase = createClient(supabaseUrl, supabaseKey)
+// if (!supabaseUrl || !supabaseKey) {
+//   console.error('❌ Missing Supabase credentials. Check your .env.local file.')
+//   process.exit(1)
+// }
+
+// const supabase = createClient(supabaseUrl, supabaseKey)
 
 async function seed() {
   console.log('🌱 Starting database seed...\n')
